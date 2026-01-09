@@ -15,7 +15,6 @@ METADATA_TABLE = "_lakeflow_metadata"
 TABLE_NAME = "tableName"
 TABLE_NAME_LIST = "tableNameList"
 TABLE_CONFIGS = "tableConfigs"
-IS_DELETE_FLOW = "isDeleteFlow"
 
 
 class LakeflowStreamReader(SimpleDataSourceStreamReader):
@@ -40,20 +39,9 @@ class LakeflowStreamReader(SimpleDataSourceStreamReader):
         return {}
 
     def read(self, start: dict) -> (Iterator[tuple], dict):
-        is_delete_flow = self.options.get(IS_DELETE_FLOW) == "true"
-        # Strip delete flow options before passing to connector
-        table_options = {
-            k: v for k, v in self.options.items() if k != IS_DELETE_FLOW
-        }
-
-        if is_delete_flow:
-            records, offset = self.lakeflow_connect.read_table_deletes(
-                self.options[TABLE_NAME], start, table_options
-            )
-        else:
-            records, offset = self.lakeflow_connect.read_table(
-                self.options[TABLE_NAME], start, table_options
-            )
+        records, offset = self.lakeflow_connect.read_table(
+            self.options[TABLE_NAME], start, self.options
+        )
         rows = map(lambda x: parse_value(x, self.schema), records)
         return rows, offset
 
