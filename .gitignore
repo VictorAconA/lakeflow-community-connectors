@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Development/Debug files
+*.csv
+*.log
+*.tmp
+downloaded_*.csv
+queue_*.csv
+
+# Credentials (IMPORTANT - never commit these!)
+**/configs/dev_config.json
+**/configs/dev_table_config.json
+*_credentials.json
+*_secrets.json
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Distribution / packaging
+*.whl
