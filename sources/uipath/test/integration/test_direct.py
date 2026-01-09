@@ -5,9 +5,11 @@ Direct test script with hardcoded correct queue ID
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
 
-from sources.uipathqueues.uipathqueues import LakeflowConnect
+from sources.uipath.uipath import LakeflowConnect
 
 
 def main():
@@ -15,18 +17,18 @@ def main():
     print("UiPath Queue Items - Direct Connection Test")
     print("=" * 80)
     
-    # Configuration with correct values
+    # Configuration with placeholder values - replace with your actual credentials
     config = {
-        "organization_name": "databwhnslig",
-        "tenant_name": "DefaultTenant",
-        "client_id": "5822280a-f26d-4284-8aa4-498c9348161d",
-        "client_secret": "C0SPPwGjUf@PN8zQ5_pbKIenin07vMoOiqZTJ#z3cowl0^rj?2MnPV9cirsxhpkE",
-        "folder_id": "434435",
+        "organization_name": "<YOUR_ORGANIZATION_NAME>",
+        "tenant_name": "<YOUR_TENANT_NAME>",
+        "client_id": "<YOUR_CLIENT_ID>",
+        "client_secret": "<YOUR_CLIENT_SECRET>",
         "scope": "OR.Queues OR.Execution"
     }
     
     table_options = {
-        "queue_definition_id": "174358",  # Correct ID for loan_queue
+        "folder_id": "<YOUR_FOLDER_ID>",
+        "queue_definition_id": "<YOUR_QUEUE_DEFINITION_ID>",
         "expand": "Robot,ReviewerUser",
         "filter": ""
     }
@@ -34,7 +36,7 @@ def main():
     print(f"\nConfiguration:")
     print(f"  Organization: {config['organization_name']}")
     print(f"  Tenant: {config['tenant_name']}")
-    print(f"  Folder ID: {config['folder_id']}")
+    print(f"  Folder ID: {table_options['folder_id']}")
     print(f"  Queue Definition ID: {table_options['queue_definition_id']}")
     
     # Initialize connector
@@ -48,16 +50,19 @@ def main():
     print(f"   ✓ Authentication successful")
     
     # Read queue items
-    print("\n3. Reading Queue Items from 'loan_queue' (ID: 174358)...")
+    print("\n3. Reading Queue Items...")
     print("   - Initiating export...")
     print("   - Polling export status...")
     print("   - Downloading CSV...")
     
     try:
         # First, let's download the CSV and save it to inspect
-        export_id = connector._initiate_export("174358", "", "Robot,ReviewerUser")
-        connector._poll_export_status(export_id)
-        download_url = connector._get_download_link(export_id)
+        folder_id = table_options['folder_id']
+        queue_definition_id = table_options['queue_definition_id']
+        
+        export_id = connector._initiate_export(folder_id, queue_definition_id, "", "Robot,ReviewerUser")
+        connector._poll_export_status(folder_id, export_id)
+        download_url = connector._get_download_link(folder_id, export_id)
         csv_content = connector._download_csv(download_url)
         
         # Save CSV for inspection

@@ -1,19 +1,19 @@
 from pathlib import Path
 
-from sources.uipathqueues.uipathqueues import LakeflowConnect
+from sources.uipath.uipath import LakeflowConnect
 from tests import test_suite
 from tests.test_suite import LakeflowConnectTester
 from tests.test_utils import load_config
 
 
-def test_uipathqueues_connector():
+def test_uipath_connector():
     """Test the UiPath Orchestrator Queue Items connector using the test suite"""
     # Inject the LakeflowConnect class into test_suite module's namespace
     # This is required because test_suite.py expects LakeflowConnect to be available
     test_suite.LakeflowConnect = LakeflowConnect
 
     # Load configuration
-    parent_dir = Path(__file__).parent.parent
+    parent_dir = Path(__file__).parent.parent.parent
     config_path = parent_dir / "configs" / "dev_config.json"
     table_config_path = parent_dir / "configs" / "dev_table_config.json"
 

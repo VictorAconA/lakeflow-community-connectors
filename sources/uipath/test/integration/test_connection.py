@@ -6,10 +6,11 @@ import json
 import sys
 from pathlib import Path
 
-# Add sources to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
 
-from sources.uipathqueues.uipathqueues import LakeflowConnect
+from sources.uipath.uipath import LakeflowConnect
 
 
 def main():
@@ -18,8 +19,8 @@ def main():
     print("=" * 80)
     
     # Load configuration
-    config_path = Path(__file__).parent / "sources/uipathqueues/configs/dev_config.json"
-    table_config_path = Path(__file__).parent / "sources/uipathqueues/configs/dev_table_config.json"
+    config_path = Path(__file__).parent.parent.parent / "configs/dev_config.json"
+    table_config_path = Path(__file__).parent.parent.parent / "configs/dev_table_config.json"
     
     with open(config_path, "r") as f:
         config = json.load(f)
@@ -30,7 +31,7 @@ def main():
     print("\n1. Loading Configuration...")
     print(f"   Organization: {config['organization_name']}")
     print(f"   Tenant: {config['tenant_name']}")
-    print(f"   Folder ID: {config['folder_id']}")
+    print(f"   Folder ID: {table_config['queue_items']['folder_id']}")
     print(f"   Queue Definition ID: {table_config['queue_items']['queue_definition_id']}")
     
     # Initialize connector
@@ -88,13 +89,14 @@ def main():
     print("\n7. Listing Available Queue Definitions...")
     try:
         import requests
-        headers = connector._get_headers()
+        folder_id = table_config['queue_items']['folder_id']
+        headers = connector._get_headers(folder_id)
         url = f"{connector.api_base_url}/odata/QueueDefinitions"
         response = requests.get(url, headers=headers)
         
         if response.status_code == 200:
             queues = response.json().get('value', [])
-            print(f"   ✓ Found {len(queues)} queue(s) in folder {config['folder_id']}")
+            print(f"   ✓ Found {len(queues)} queue(s) in folder {folder_id}")
             for queue in queues[:10]:  # Show first 10
                 print(f"      - ID: {queue.get('Id')}, Name: {queue.get('Name')}")
             

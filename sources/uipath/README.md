@@ -29,11 +29,10 @@ Provide the following **connection-level** options when configuring the connecto
 | `tenant_name`       | string | yes      | UiPath tenant name                                                                          | `my-tenant`                       |
 | `client_id`         | string | yes      | OAuth App ID from external application registration                                         | `abc123...`                       |
 | `client_secret`     | string | yes      | OAuth App Secret from external application registration                                     | `xyz789...`                       |
-| `folder_id`         | string | yes      | Organization Unit ID (folder) to query queues from                                          | `770643`                          |
 | `scope`             | string | no       | OAuth scopes (defaults to "OR.Queues OR.Execution")                                         | `OR.Queues OR.Execution OR.Default` |
-| `externalOptionsAllowList` | string | yes | Comma-separated list of table-specific option names allowed. Required: `queue_definition_id,filter,expand` | `queue_definition_id,filter,expand` |
+| `externalOptionsAllowList` | string | yes | Comma-separated list of table-specific option names allowed. Required: `folder_id,queue_definition_id,filter,expand` | `folder_id,queue_definition_id,filter,expand,tableConfigs` |
 
-> **Note**: Table-specific options such as `queue_definition_id` are **not** connection parameters. They are provided per-table via table options in the pipeline specification. These option names must be included in `externalOptionsAllowList` for the connection to allow them.
+> **Note**: Table-specific options such as `folder_id` and `queue_definition_id` are **not** connection parameters. They are provided per-table via table options in the pipeline specification. These option names must be included in `externalOptionsAllowList` for the connection to allow them.
 
 
 ### Obtaining the Required Parameters
@@ -48,11 +47,12 @@ Provide the following **connection-level** options when configuring the connecto
 2. **Get Organization and Tenant Names**:
    - These appear in your UiPath Cloud URL: `https://cloud.uipath.com/{organization_name}/{tenant_name}/`
 
-3. **Get Folder ID**:
+3. **Get Folder ID** (per queue):
    - In Orchestrator, navigate to **Admin → Folders**
    - Select the folder containing your queues
    - The folder ID appears in the URL or folder properties
    - Alternatively, call the `/odata/Folders` API endpoint to list folder IDs
+   - **Note**: Each queue can be in a different folder, so specify `folder_id` per table in your pipeline spec
 
 4. **Get Queue Definition ID**:
    - Navigate to **Orchestrator → Queues**
@@ -67,7 +67,7 @@ A Unity Catalog connection for this connector can be created via the UI:
 
 1. Follow the **Lakeflow Community Connector** UI flow from the **Add Data** page
 2. Select or create a new connection for UiPath Orchestrator
-3. Set `externalOptionsAllowList` to `queue_definition_id,filter,expand` (required for this connector to pass table-specific options)
+3. Set `externalOptionsAllowList` to `folder_id,queue_definition_id,filter,expand,tableConfigs` (required for this connector to pass table-specific options)
 
 The connection can also be created using the standard Unity Catalog API.
 
@@ -94,6 +94,7 @@ Table-specific options are passed via the pipeline spec under `table` in `object
 
 | Option                 | Type   | Required | Description                                                                                 | Example                          |
 |------------------------|--------|----------|---------------------------------------------------------------------------------------------|----------------------------------|
+| `folder_id`            | string | yes      | Organization Unit ID (folder) where the queue exists                                        | `"434435"`                       |
 | `queue_definition_id`  | string | yes      | ID of the queue definition to export items from                                             | `"27965"`                        |
 | `expand`               | string | no       | Related entities to expand (defaults to "Robot,ReviewerUser")                               | `"Robot,ReviewerUser"`           |
 | `filter`               | string | no       | OData filter expression to limit queue items                                                | `"Status eq 'Successful'"`       |
@@ -169,6 +170,7 @@ Example `pipeline_spec` snippet:
       {
         "table": {
           "source_table": "queue_items",
+          "folder_id": "434435",
           "queue_definition_id": "27965",
           "expand": "Robot,ReviewerUser",
           "filter": ""
@@ -182,8 +184,11 @@ Example `pipeline_spec` snippet:
 - `connection_name` must point to the UC connection configured with your UiPath credentials
 - For each `table`:
   - `source_table` must be `queue_items`
+  - `folder_id` is required and identifies which folder (Organization Unit) the queue is in
   - `queue_definition_id` is required and identifies which queue to export
   - `expand` and `filter` are optional OData parameters
+
+> **Tip**: You can query queues from different folders using a single connection by specifying different `folder_id` values per table in your pipeline spec.
 
 
 ### Step 3: Run and Schedule the Pipeline
