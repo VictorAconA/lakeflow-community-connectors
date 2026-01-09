@@ -71,7 +71,9 @@ def _parse_string(value: Any) -> str:
 
 def _parse_integer(value: Any) -> int:
     """Convert value to integer."""
-    if isinstance(value, str) and value.strip():
+    if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f"Cannot convert empty string to integer")
         return int(float(value)) if "." in value else int(value)
     if isinstance(value, (int, float)):
         return int(value)
@@ -80,17 +82,25 @@ def _parse_integer(value: Any) -> int:
 
 def _parse_float(value: Any) -> float:
     """Convert value to float."""
+    if isinstance(value, str) and not value.strip():
+        raise ValueError(f"Cannot convert empty string to float")
     return float(value)
 
 
 def _parse_decimal(value: Any) -> Decimal:
     """Convert value to Decimal."""
-    return Decimal(value) if isinstance(value, str) and value.strip() else Decimal(str(value))
+    if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f"Cannot convert empty string to Decimal")
+        return Decimal(value)
+    return Decimal(str(value))
 
 
 def _parse_boolean(value: Any) -> bool:
     """Convert value to boolean."""
     if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f"Cannot convert empty string to boolean")
         lowered = value.lower()
         if lowered in ("true", "t", "yes", "y", "1"):
             return True
@@ -102,6 +112,8 @@ def _parse_boolean(value: Any) -> bool:
 def _parse_date(value: Any) -> datetime.date:
     """Convert value to date."""
     if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f"Cannot convert empty string to date")
         for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y", "%Y/%m/%d"):
             try:
                 return datetime.strptime(value, fmt).date()
@@ -116,6 +128,8 @@ def _parse_date(value: Any) -> datetime.date:
 def _parse_timestamp(value: Any) -> datetime:
     """Convert value to timestamp."""
     if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f"Cannot convert empty string to timestamp")
         ts_value = value.replace("Z", "+00:00") if value.endswith("Z") else value
         try:
             return datetime.fromisoformat(ts_value)
@@ -178,6 +192,10 @@ def parse_value(value: Any, field_type: DataType) -> Any:
     Converts a JSON value into a PySpark-compatible data type based on the provided field type.
     """
     if value is None:
+        return None
+    
+    # Treat empty strings as None for all types except StringType
+    if isinstance(value, str) and not value.strip() and not isinstance(field_type, StringType):
         return None
 
     # Handle complex types
